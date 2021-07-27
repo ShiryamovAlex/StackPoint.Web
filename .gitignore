@@ -1,0 +1,14 @@
+[Bb]in/
+[Oo]bj/
+.idea/
+.vs/
+.vscode/
+.sonarqube/
+node_modules/
+.DS_Store
+*.dll
+*.lock.json
+*.pdb
+*.pubxml
+*.user
+project.lock.json
