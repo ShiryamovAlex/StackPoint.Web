@@ -1,22 +1,18 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
+using AutoMapper;
 using MassTransit;
-using MassTransit.Definition;
 using Microsoft.Extensions.Logging;
 using StackPoint.Data;
 using StackPoint.Data.Models;
 using StackPoint.Domain.Models;
+using StackPoint.Service2.AutoMaps;
 
 namespace StackPoint.Service2.MqMassTransit
 {
-    public class AddUserConsumerDefinition : ConsumerDefinition<AddUserConsumer>
-    {
-        public AddUserConsumerDefinition()
-        {
-            EndpointName = "input-queue";
-            ConcurrentMessageLimit = 8;
-        }
-    }
-
+    /// <summary>
+    /// Потребитель задач на добавление пользователей
+    /// </summary>
     public class AddUserConsumer : IConsumer<UserDto>
     {
         private readonly DatabaseContext _databaseContext;
@@ -33,18 +29,25 @@ namespace StackPoint.Service2.MqMassTransit
             var userDto = context.Message;
             _logger.LogInformation("Получен пользователь для сохранения: {Name}", userDto.Name);
 
-            await _databaseContext.Users.AddAsync(new User
+            var transaction = _databaseContext.Database.BeginTransaction();
+            try
             {
-                Name = userDto.Name,
-                LastName = userDto.LastName,
-                Patronymic = userDto.Patronymic,
-                Email = userDto.Email,
-                Phone = userDto.Phone
-            });
+                var config = new MapperConfiguration(expression => expression.AddProfile(new UserProfile()));
+                var mapper = new Mapper(config);
+                var user = mapper.Map<User>(userDto);
 
-            await _databaseContext.SaveChangesAsync();
+                await _databaseContext.Users.AddAsync(user);
 
-            _logger.LogInformation("Новый пользователь добавлен");
+                await _databaseContext.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                _logger.LogInformation("Новый пользователь добавлен");
+            }
+            catch(Exception exception)
+            {
+                _logger.LogError(exception, "Ошибка добавления пользователя");
+                await transaction.RollbackAsync();
+            }
         }
     }
 }

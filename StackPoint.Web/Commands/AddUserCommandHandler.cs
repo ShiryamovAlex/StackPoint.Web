@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MassTransit;
 using MediatR;
-using StackPoint.Domain.Services;
+using Microsoft.Extensions.Logging;
+using StackPoint.Services;
 
 namespace StackPoint.Web.Commands
 {
@@ -13,19 +15,22 @@ namespace StackPoint.Web.Commands
         private const string QueueName = "queue:add-user";
 
         private readonly IBus _bus;
-        private readonly IUserValidator _userValidator;
+        private readonly ILogger _logger;
 
-        public AddUserCommandHandler(IBus bus, IUserValidator userValidator)
+        public AddUserCommandHandler(IBus bus, ILogger<AddUserCommandHandler> logger)
         {
             _bus = bus;
-            _userValidator = userValidator;
+            _logger = logger;
         }
 
         public async Task<string> Handle(AddUserCommand request, CancellationToken cancellationToken)
         {
-            var error = _userValidator.CheckUser(request.UserDto);
-            if (error != null)
+            var userValidator = new UserValidator();
+            var validationResult = userValidator.Validate(request.UserDto);
+            if (!validationResult.IsValid)
             {
+                var error = string.Join(", ", validationResult.Errors.Select(x => x.ErrorMessage));
+                _logger.Log(LogLevel.Error, error);
                 return error;
             }
 
@@ -33,12 +38,13 @@ namespace StackPoint.Web.Commands
             var endpoint = await _bus.GetSendEndpoint(address);
             if (endpoint == null)
             {
-                Console.WriteLine($"Не обнаружен слушатель для очереди {QueueName}");
+                _logger.Log(LogLevel.Error, $"Не обнаружен слушатель для очереди {QueueName}");
                 return ConnectionError;
             }
 
             await endpoint.Send(request.UserDto, cancellationToken);
-            Console.WriteLine($"Создана очередь для создания пользователя - {QueueName}");
+
+            _logger.Log(LogLevel.Information, $"Создана очередь для создания пользователя - {QueueName}");
 
             return null;
         }

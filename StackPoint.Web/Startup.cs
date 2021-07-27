@@ -5,9 +5,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using StackPoint.Domain.Services;
-using StackPoint.Services;
 using MassTransit;
+using Serilog;
 
 namespace StackPoint.Web
 {
@@ -27,7 +26,9 @@ namespace StackPoint.Web
             services.AddControllers();
             services.AddMediatR(typeof(Startup));
 
-            services.AddScoped<IUserValidator, UserValidator>();
+            // services.AddMvc().AddFluentValidation();
+
+            // services.AddTransient<IValidator<UserDto>, UserValidator>();
 
             var hostName = Environment.GetEnvironmentVariable("RABBIT_MQ_HOST_NAME");
             services.AddMassTransit(x =>
@@ -41,7 +42,10 @@ namespace StackPoint.Web
 
             services.AddMassTransitHostedService(true);
 
-            services.AddSingleton<IMqSender>(x => new MqSender(hostName));
+            Log.Logger = new LoggerConfiguration()
+                .Enrich.FromLogContext()
+                .WriteTo.Console()
+                .CreateLogger();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

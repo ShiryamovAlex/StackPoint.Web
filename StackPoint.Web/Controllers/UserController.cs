@@ -1,7 +1,6 @@
 ﻿using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using StackPoint.Domain.Models;
 using StackPoint.Web.Commands;
 
@@ -11,12 +10,10 @@ namespace StackPoint.Web.Controllers
     [Route("[controller]")]
     public class UserController : Controller 
     {
-        private readonly ILogger<UserController> _logger;
         private readonly IMediator _mediator;
 
-        public UserController(ILogger<UserController> logger, IMediator mediator)
+        public UserController(IMediator mediator)
         {
-            _logger = logger;
             _mediator = mediator;
         }
 
@@ -28,9 +25,6 @@ namespace StackPoint.Web.Controllers
             return Ok(result);
         }
 
-        /// <summary>
-        /// Создание нового объекта
-        /// </summary>
         [HttpPost]
         public async Task<IActionResult> PostAsync([FromBody] UserDto dto = null)
         {
