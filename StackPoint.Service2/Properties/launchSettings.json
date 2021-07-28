@@ -20,6 +20,7 @@
       "commandName": "Project",
       "launchUrl": "user",
       "environmentVariables": {
+        "DB_CONNECTION_STRING": "Host=localhost;Port=6432;Database=StackPoint.DB;Username=postgres;Password=mysecretpassword",
         "RABBIT_MQ_HOST_NAME": "localhost",
         "ASPNETCORE_ENVIRONMENT": "Development"
       },

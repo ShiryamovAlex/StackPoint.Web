@@ -1,5 +1,6 @@
 using System;
 using MassTransit;
+using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -28,24 +29,25 @@ namespace StackPoint.Service2
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+            services.AddMediatR(typeof(Startup));
 
+            var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
             services.AddDbContext<DatabaseContext>(optionsBuilder =>
             {
-                optionsBuilder.UseNpgsql(
-                    "Host=localhost;Port=6432;Database=StackPoint.DB;Username=postgres;Password=mysecretpassword");
+                optionsBuilder.UseNpgsql(connectionString);
             });
 
             services.AddAutoMapper(typeof(UserProfile));
             services.AddScoped<IUserService, UserService>();
 
-            var hostName = Environment.GetEnvironmentVariable("RABBIT_MQ_HOST_NAME");
+            var mqHostName = Environment.GetEnvironmentVariable("RABBIT_MQ_HOST_NAME");
             services.AddMassTransit(x =>
             {
                 x.AddConsumer<AddUserConsumer>(typeof(AddUserConsumerDefinition));
 
                 x.UsingRabbitMq((context, cfg) =>
                 {
-                    cfg.Host(hostName);
+                    cfg.Host(mqHostName);
                     cfg.ConfigureEndpoints(context);
                 });
             });

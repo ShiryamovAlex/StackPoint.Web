@@ -37,7 +37,8 @@ namespace StackPoint.Web.Commands
             var data = new StringContent(json, Encoding.UTF8, "application/json");
 
             var client = _clientFactory.CreateClient();
-            var url = $"https://localhost:5002/{method}";
+
+            var url = $"{Environment.GetEnvironmentVariable("SERVISE2_URL")}/{method}";
             var response = await client.PostAsync(url, data, cancellationToken);
 
             var result = response.Content.ReadAsStringAsync().Result;

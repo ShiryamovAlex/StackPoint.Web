@@ -1,0 +1,40 @@
+version: "3.9"
+services:
+    web:
+        build:
+          context: .
+          dockerfile: ./docker/StackPointWebDockerFile
+        restart: always
+        ports:
+            - 9001:80
+        depends_on:
+            - rabbit
+        environment:
+            RABBIT_MQ_HOST_NAME: rabbit
+            SERVISE2_URL: http://service2
+    service2:
+        build:
+          context: .
+          dockerfile: ./docker/StackPointService2DockerFile
+        restart: always
+        ports:
+            - 9002:80
+        depends_on:
+            - rabbit
+            - db
+        environment:
+            RABBIT_MQ_HOST_NAME: rabbit
+            DB_CONNECTION_STRING: Host=db;Port=5432;Database=StackPoint.DB;Username=postgres;Password=mysecretpassword
+    db:
+        image: postgres:latest
+        restart: always
+        environment:
+            POSTGRES_PASSWORD: mysecretpassword
+        ports:
+            - 9876:5432
+    rabbit:
+        image: rabbitmq
+        restart: always
+        ports:
+            - 15673:15672
+            - 5673:5672
