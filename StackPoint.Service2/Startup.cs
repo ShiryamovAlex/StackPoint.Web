@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using StackPoint.Data;
+using StackPoint.Service2.AutoMaps;
 using StackPoint.Service2.MqMassTransit;
 
 namespace StackPoint.Service2
@@ -31,6 +32,8 @@ namespace StackPoint.Service2
                 optionsBuilder.UseNpgsql(
                     "Host=localhost;Port=6432;Database=StackPoint.DB;Username=postgres;Password=mysecretpassword");
             });
+
+            services.AddAutoMapper(typeof(UserProfile));
 
             var hostName = Environment.GetEnvironmentVariable("RABBIT_MQ_HOST_NAME");
             services.AddMassTransit(x =>

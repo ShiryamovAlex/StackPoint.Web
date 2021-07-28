@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
 using StackPoint.Domain.Models;
 
-namespace StackPoint.Services
+namespace StackPoint.Web.Validation
 {
     public class UserValidator : AbstractValidator<UserDto>
     {

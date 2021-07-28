@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MassTransit;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using StackPoint.Services;
 
 namespace StackPoint.Web.Commands
 {
@@ -19,21 +17,12 @@ namespace StackPoint.Web.Commands
 
         public AddUserCommandHandler(IBus bus, ILogger<AddUserCommandHandler> logger)
         {
-            _bus = bus;
-            _logger = logger;
+            _bus = bus ?? throw new ArgumentNullException(nameof(bus));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task<string> Handle(AddUserCommand request, CancellationToken cancellationToken)
         {
-            var userValidator = new UserValidator();
-            var validationResult = userValidator.Validate(request.UserDto);
-            if (!validationResult.IsValid)
-            {
-                var error = string.Join(", ", validationResult.Errors.Select(x => x.ErrorMessage));
-                _logger.Log(LogLevel.Error, error);
-                return error;
-            }
-
             var address = new Uri(QueueName);
             var endpoint = await _bus.GetSendEndpoint(address);
             if (endpoint == null)

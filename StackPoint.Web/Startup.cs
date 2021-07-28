@@ -1,4 +1,6 @@
 using System;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -7,6 +9,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MassTransit;
 using Serilog;
+using StackPoint.Domain.Models;
+using StackPoint.Web.Validation;
 
 namespace StackPoint.Web
 {
@@ -26,9 +30,8 @@ namespace StackPoint.Web
             services.AddControllers();
             services.AddMediatR(typeof(Startup));
 
-            // services.AddMvc().AddFluentValidation();
-
-            // services.AddTransient<IValidator<UserDto>, UserValidator>();
+            services.AddMvc().AddFluentValidation();
+            services.AddTransient<IValidator<UserDto>, UserValidator>();
 
             var hostName = Environment.GetEnvironmentVariable("RABBIT_MQ_HOST_NAME");
             services.AddMassTransit(x =>

@@ -1,13 +1,9 @@
-﻿using System.Linq;
+﻿using System;
 using System.Threading.Tasks;
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using StackPoint.Data;
 using StackPoint.Domain.Models;
-using StackPoint.Service2.AutoMaps;
+using StackPoint.Service2.Commands;
 
 namespace StackPoint.Service2.Controllers
 {
@@ -15,26 +11,28 @@ namespace StackPoint.Service2.Controllers
     [Route("[controller]")]
     public class UserController : ControllerBase
     {
-        private readonly ILogger<UserController> _logger;
-        private readonly DatabaseContext _databaseContext;
+        private readonly IMediator _mediator;
 
-        public UserController(ILogger<UserController> logger, DatabaseContext databaseContext)
+        public UserController(IMediator mediator)
         {
-            _logger = logger;
-            _databaseContext = databaseContext;
+            _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         }
 
         [HttpPost]
-        public async Task<IActionResult> Post(Paging paging)
+        public async Task<IActionResult> PostAsync(Paging paging)
         {
-            var provider = new MapperConfiguration(expression => expression.AddProfile(new UserProfile()));
-            var users = await _databaseContext.Users
-                .Skip(paging.Skip)
-                .Take(paging.Take)
-                .ProjectTo<UserDto>(provider)
-                .ToListAsync();
+            var getUsersQuery = new GetUsersQuery(paging);
+            var result = await _mediator.Send(getUsersQuery);
 
-            return Ok(users);
+            return Ok(result);
+        }
+
+        public async Task<IActionResult> BindUserWithOrganizationAsync(long userId, long organizationId)
+        {
+            var command = new BindUserWithOrganizationCommand(userId, organizationId);
+            await _mediator.Send(command);
+
+            return NoContent();
         }
     }
 }

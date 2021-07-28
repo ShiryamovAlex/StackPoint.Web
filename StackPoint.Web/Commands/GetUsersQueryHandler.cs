@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
@@ -17,8 +18,8 @@ namespace StackPoint.Web.Commands
 
         public GetUsersQueryHandler(IHttpClientFactory clientFactory, ILogger<GetUsersQueryHandler> logger)
         {
-            _clientFactory = clientFactory;
-            _logger = logger;
+            _clientFactory = clientFactory ?? throw new ArgumentNullException(nameof(clientFactory));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public Task<List<UserDto>> Handle(GetUsersQuery request, CancellationToken cancellationToken)
