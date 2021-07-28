@@ -8,8 +8,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using StackPoint.Data;
+using StackPoint.Domain.Services;
 using StackPoint.Service2.AutoMaps;
 using StackPoint.Service2.MqMassTransit;
+using StackPoint.Service2.Services;
 
 namespace StackPoint.Service2
 {
@@ -34,6 +36,7 @@ namespace StackPoint.Service2
             });
 
             services.AddAutoMapper(typeof(UserProfile));
+            services.AddScoped<IUserService, UserService>();
 
             var hostName = Environment.GetEnvironmentVariable("RABBIT_MQ_HOST_NAME");
             services.AddMassTransit(x =>

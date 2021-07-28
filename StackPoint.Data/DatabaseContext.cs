@@ -5,12 +5,16 @@ namespace StackPoint.Data
 {
     public class DatabaseContext : DbContext
     {
+        protected DatabaseContext(){
+
+        }
+
         public DatabaseContext(DbContextOptions options) : base(options)
         {
         }
 
-        public DbSet<User> Users { get; set; }
+        public virtual DbSet<User> Users { get; set; }
 
-        public DbSet<Organisation> Organisations { get; set; }
+        public virtual DbSet<Organisation> Organisations { get; set; }
     }
 }

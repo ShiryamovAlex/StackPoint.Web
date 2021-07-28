@@ -1,28 +1,41 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using StackPoint.Data;
+using StackPoint.Domain.Services;
 
 namespace StackPoint.Service2.Commands
 {
-    public class BindUserWithOrganizationCommandHandler : IRequestHandler<BindUserWithOrganizationCommand>
+    public class BindUserWithOrganizationCommandHandler : IRequestHandler<BindUserWithOrganizationCommand, bool>
     {
         private readonly ILogger<BindUserWithOrganizationCommandHandler> _logger;
-        private readonly DatabaseContext _databaseContext;
+        private readonly IUserService _userService;
 
         public BindUserWithOrganizationCommandHandler(ILogger<BindUserWithOrganizationCommandHandler> logger,
-            DatabaseContext databaseContext)
+            IUserService userService)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _databaseContext = databaseContext ?? throw new ArgumentNullException(nameof(databaseContext));
+            _userService = userService ?? throw new ArgumentNullException(nameof(userService));
         }
 
-        public Task<Unit> Handle(BindUserWithOrganizationCommand request, CancellationToken cancellationToken)
+        public async Task<bool> Handle(BindUserWithOrganizationCommand request, CancellationToken cancellationToken)
         {
-            // TODO: Реализовать
-            throw new NotImplementedException();
+            _logger.LogInformation(
+                $"Получен запрос на добавление пользователя (id = {request.UserId}) в организацию {request.OrganizationId}");
+
+            try
+            {
+                await _userService.AddUserToOrganizationAsync(request.UserId, request.OrganizationId);
+            }
+            catch (ValidationException exception)
+            {
+                _logger.LogError(exception, "Ошибка добавления пользователя");
+                return false;
+            }
+
+            return true;
         }
     }
 }

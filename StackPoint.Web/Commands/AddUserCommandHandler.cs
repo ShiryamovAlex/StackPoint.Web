@@ -4,13 +4,14 @@ using System.Threading.Tasks;
 using MassTransit;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using StackPoint.Domain.Constants;
 
 namespace StackPoint.Web.Commands
 {
     public class AddUserCommandHandler : IRequestHandler<AddUserCommand, string>
     {
         private const string ConnectionError = "Ошибка добавления нового пользователя. Обратитесь к системному администратору";
-        private const string QueueName = "queue:add-user";
+        private const string QueueName = "queue:" + QueueNames.AddUser;
 
         private readonly IBus _bus;
         private readonly ILogger _logger;
